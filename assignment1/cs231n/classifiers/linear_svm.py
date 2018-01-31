@@ -43,6 +43,15 @@ def svm_loss_naive(W, X, y, reg):
   # Add regularization to the loss.
   loss += reg * np.sum(W * W)
 
+  ###################################################################
+  # Another way to calculate the loss
+#  scores = X.dot(W)
+#  margin = scores - score[np.arange(num_train), y].reshape(num_train, 1) + 1
+#  margin[np.arange(num_train, y)] = 0, 0
+#  margin = np.max(margin, 0)
+#  loss += margin.sum / num_train + reg * np.sum(W * W)
+
+
   #############################################################################
   # TODO:                                                                     #
   # Compute the gradient of the loss function and store it dW.                #
@@ -51,7 +60,10 @@ def svm_loss_naive(W, X, y, reg):
   # loss is being computed. As a result you may need to modify some of the    #
   # code above to compute the gradient.                                       #
   #############################################################################
-
+  margin = (margin > 0) * 1
+  row_sum = np.sum(margin, axis=1)
+  margin[np.arange(num_train), y] = -row_sum
+  dW = X.T.dot(margin)/num_train + reg * W
 
   return loss, dW
 
