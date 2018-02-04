@@ -19,9 +19,11 @@ class KNearestNeighbor(object):
     - y: A numpy array of shape (N,) containing the training labels, where
          y[i] is the label for X[i].
     """
+
     self.X_train = X
     self.y_train = y
-    
+
+
   def predict(self, X, k=1, num_loops=0):
     """
     Predict labels for test data using this classifier.
@@ -73,7 +75,8 @@ class KNearestNeighbor(object):
         # training point, and store the result in dists[i, j]. You should   #
         # not use a loop over dimension.                                    #
         #####################################################################
-        dists[i, j] = np.sqrt(np.dot(X[i] - self.X_train[j], X[i] - self.X_train[j]))
+##        dists[i, j] = np.sqrt(np.dot(X[i] - self.X_train[j], X[i] - self.X_train[j]))
+        dists[i, j] = np.linalg.norm(X[i] - self.X_train[j])
         ## np.dot stands for matrix multiply. So here stands for the PING FANG
         #####################################################################
         #                       END OF YOUR CODE                            #
@@ -96,7 +99,11 @@ class KNearestNeighbor(object):
       # Compute the l2 distance between the ith test point and all training #
       # points, and store the result in dists[i, :].                        #
       #######################################################################
-      dists[i, :] = np.sqrt(X[i, :] - self.X_train[i, :], X[i, :] - self.X_train[i, :], axis=1)
+#      dists[i, :] = np.sqrt(X[i, :] - self.X_train[i, :], X[i, :] - self.X_train[i, :], axis=1)
+      dists[i, :] = np.linalg.norm(X[i, :] - self.X_train[:], axis=1)
+      ##  Broadcast mechenism in numpy, X[i,:](1, D); X_train[:] (num_train, D)
+      ##  --(numpy broadcast move the 1 dimension from X[i, :] to the final result automatically)---> (1, num_train)
+      ## Must set axis=1 stands for calculate the distance in axis=1 stands for row
       #######################################################################
       #                         END OF YOUR CODE                            #
       #######################################################################
@@ -124,7 +131,12 @@ class KNearestNeighbor(object):
     # HINT: Try to formulate the l2 distance using matrix multiplication    #
     #       and two broadcast sums.                                         #
     #########################################################################
-    pass
+    # Generate test data with shape(m=num_test, 1) via numpy broadcast sums
+    dists += np.sum(np.multiply(X, X), axis=1, keepdims=True). reshape(num_test, 1)
+    # Generate train data with shape(1, n=num_train) via numpy broadcast sums
+    dists += np.sum(np.multiply(self.X_train, self.X_train), axis=1, keepdims=True).reshape(1, num_train)
+    dists += -2 * np.dot(X, self.X_train.T)
+    dists = np.sqrt(dists)
     #########################################################################
     #                         END OF YOUR CODE                              #
     #########################################################################
@@ -157,7 +169,9 @@ class KNearestNeighbor(object):
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
 
-      closest_y[i] = self.y_train[np.argsort(dists[i])[0:k]]  # store the 0th to kth labels into closest_y[i]
+      closest_y = self.y_train[np.argsort(dists[i])[:k]]
+      print(closest_y)
+      #  argsort retuns K index
       ##min_index = np.argmin(dists)  # get the index with smallest distance
 
       #########################################################################
@@ -168,7 +182,7 @@ class KNearestNeighbor(object):
       # label.                                                                #
       #########################################################################
 
-      y_pred[i] = np.bincount(closest_y).argmax()  # most common label in closest_y label list
+      y_pred[i] = np.bincount(closest_y).argmax()  # most common labels in closest_y label list
       #########################################################################
       #                           END OF YOUR CODE                            # 
       #########################################################################

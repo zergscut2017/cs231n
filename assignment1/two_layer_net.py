@@ -1,31 +1,31 @@
 from __future__ import print_function
-
 import numpy as np
 import matplotlib.pyplot as plt
-
 from cs231n.classifiers.neural_net import TwoLayerNet
 from cs231n.data_utils import load_CIFAR10
 from cs231n.vis_utils import visualize_grid
 from cs231n.gradient_check import eval_numerical_gradient
 
-
-
 plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
 
+
 def rel_error(x, y):
     """ returns relative error """
     return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
+
 
 input_size = 4
 hidden_size = 10
 num_classes = 3
 num_inputs = 5
 
+
 def init_toy_model():
     np.random.seed(0)
     return TwoLayerNet(input_size, hidden_size, num_classes, std=1e-1)
+
 
 def init_toy_data():
     np.random.seed(1)
@@ -33,9 +33,9 @@ def init_toy_data():
     y = np.array([0, 1, 2, 2, 1])
     return X, y
 
+
 net = init_toy_model()
 X, y = init_toy_data()
-
 scores = net.loss(X)
 print('Your scores:')
 print(scores)
@@ -65,7 +65,6 @@ print(np.sum(np.abs(loss - correct_loss)))
 # Use numeric gradient checking to check your implementation of the backward pass.
 # If your implementation is correct, the difference between the numeric and
 # analytic gradients should be less than 1e-8 for each of W1, W2, b1, and b2.
-
 loss, grads = net.loss(X, y, reg=0.05)
 
 # these should all be less than 1e-8 or so
@@ -74,12 +73,10 @@ for param_name in grads:
     param_grad_num = eval_numerical_gradient(f, net.params[param_name], verbose=False)
     print('%s max relative error: %e' % (param_name, rel_error(param_grad_num, grads[param_name])))
 
-
 net = init_toy_model()
 stats = net.train(X, y, X, y,
             learning_rate=1e-1, reg=5e-6,
             num_iters=100, verbose=False)
-
 print('Final training loss: ', stats['loss_history'][-1])
 
 # plot the loss history
@@ -88,7 +85,6 @@ plt.xlabel('iteration')
 plt.ylabel('training loss')
 plt.title('Training Loss history')
 plt.show()
-
 
 
 def get_CIFAR10_data(num_training=49000, num_validation=1000, num_test=1000):
@@ -167,7 +163,6 @@ plt.ylabel('Clasification accuracy')
 plt.show()
 
 
-
 # Visualize the weights of the network
 
 def show_net_weights(net):
@@ -176,6 +171,7 @@ def show_net_weights(net):
     plt.imshow(visualize_grid(W1, padding=3).astype('uint8'))
     plt.gca().axis('off')
     plt.show()
+
 
 show_net_weights(net)
 
