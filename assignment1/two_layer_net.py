@@ -6,7 +6,7 @@ from cs231n.data_utils import load_CIFAR10
 from cs231n.vis_utils import visualize_grid
 from cs231n.gradient_check import eval_numerical_gradient
 
-plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
+plt.rcParams['figure.figsize'] = (10.0, 8.0)  # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
 
@@ -175,7 +175,7 @@ def show_net_weights(net):
 
 show_net_weights(net)
 
-best_net = None # store the best model into this
+best_net = None  # store the best model into this
 
 #################################################################################
 # TODO: Tune hyperparameters using the validation set. Store your best trained  #
@@ -189,7 +189,39 @@ best_net = None # store the best model into this
 # write code to sweep through possible combinations of hyperparameters          #
 # automatically like we did on the previous exercises.                          #
 #################################################################################
-pass
+best_valacc=-1.0
+input_size = 32 * 32 * 3
+num_classes = 10
+# hidden_size = 50
+hidden_size = 32 * 32 * 3
+learn_rate =[7.2e-4]
+# learning_rate_decay=[0.94,0.95,0.93]
+reg=[1e-3]
+results = {}
+params = [x1 for x1 in learn_rate]
+#  for x3 in learning_rate_decay for x4 in reg]
+for learn_rate in params:
+    net = TwoLayerNet(input_size, hidden_size, num_classes)
+
+    # Train the network
+    stats = net.train(X_train, y_train, X_val, y_val,
+                      num_iters=6400, batch_size=128,
+                      learning_rate=7.2e-4, learning_rate_decay=0.95,
+                      reg=1e-3, verbose=True)
+
+    # Predict on the validation set
+    val_acc = np.mean(net.predict(X_val) == y_val)
+    results[learn_rate] = val_acc
+    if val_acc>best_valacc:
+        best_valacc = val_acc
+        best_net = net
+
+
+for learn_rate in sorted(results):
+    val_accuracy = results[learn_rate]
+    print ('learn_rate: %e' % learn_rate)
+    print ('val accuracy: %f' % val_accuracy)
+print('best validation accuracy achieved during cross-validation: %f' % best_valacc)
 #################################################################################
 #                               END OF YOUR CODE                                #
 #################################################################################
