@@ -305,7 +305,34 @@ class FullyConnectedNet(object):
         # automated tests, make sure that your L2 regularization includes a factor #
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
-        pass
+        loss, reg_loss, grads = 0.0, 0.0, {}
+        data_loss, dscores = softmax_loss(scores, y)
+        for i in xrange(self.num_layers):
+            reg_loss += 0.5 * self.reg * np.sum(self.params['W' + str(i+1)]*self.params['W' + str(i+1)])
+        loss = data_loss + reg_loss
+
+        # Backward pass: compute gradients
+        dout, dbn, dh, ddrop = {}, {}, {}, {}
+        t = self.num_layers-1
+        dout[t], grads['W'+str(t+1)], grads['b'+str(t+1)] = affine_backward(dscores, cache)
+        for i in xrange(t):
+            if self.use_batchnorm:
+                if self.use_dropout:
+                    ddrop[t-1-i] = dropout_backward(dout[t-i], cache4[t-1-i])
+                    dout[t-i] = ddrop[t-1-i]
+                dbn[t-1-i] = relu_backward(dout[t-i], cache3[t-1-i])
+                dh[t-1-i], grads['gamma'+str(t-i)], grads['beta'+str(t-i)] = batchnorm_backward(dbn[t-1-i], cache2[t-1-i])
+                dout[t-1-i], grads['W'+str(t-i)], grads['b'+str(t-i)] = affine_backward(dh[t-1-i], cache1[t-1-i])
+            else:
+                if self.use_dropout:
+                    ddrop[t-1-i] = dropout_backward(dout[t-i], cache4[t-1-i])
+                    dout[t-i] = ddrop[t-1-i]
+                dout[t-1-i], grads['W'+str(t-i)], grads['b'+str(t-i)] = affine_relu_backward(dout[t-i], cache3[t-1-i])
+
+        # Add the regularization gradient contribution
+        for i in xrange(self.num_layers):
+            grads['W'+str(i+1)] += self.reg * self.params['W' + str(i+1)]
+
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
