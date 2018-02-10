@@ -516,7 +516,20 @@ def max_pool_backward_naive(dout, cache):
     ###########################################################################
     # TODO: Implement the max pooling backward pass                           #
     ###########################################################################
-    pass
+    x, pool_param = cache
+    HH, WW = pool_param['pool_height'], pool_param['pool_width']
+    s = pool_param['stride']
+    N, C, H, W = x.shape
+    H_new = 1 + (H - HH) / s
+    W_new = 1 + (W - WW) / s
+    dx = np.zeros_like(x)
+    for i in xrange(N):
+        for j in xrange(C):
+            for k in xrange(H_new):
+                for l in xrange(W_new):
+                    window = x[i, j, k*s:HH+k*s, l*s:WW+l*s]
+                    m = np.max(window)
+                    dx[i, j, k*s:HH+k*s, l*s:WW+l*s] = (window == m) * dout[i, j, k, l]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -554,7 +567,12 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
     # version of batch normalization defined above. Your implementation should#
     # be very short; ours is less than five lines.                            #
     ###########################################################################
-    pass
+    N, C, H, W = x.shape
+    x_new = x.transpose(0, 2, 3, 1).reshape(N*H*W, C)
+    out, cache = batchnorm_forward(x_new, gamma, beta, bn_param)
+    out = out.reshape(N, H, W, C).transpose(0, 3, 1, 2)
+
+    return out, cache
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -584,7 +602,10 @@ def spatial_batchnorm_backward(dout, cache):
     # version of batch normalization defined above. Your implementation should#
     # be very short; ours is less than five lines.                            #
     ###########################################################################
-    pass
+    N, C, H, W = dout.shape
+    dout_new = dout.transpose(0, 2, 3, 1).reshape(N*H*W, C)
+    dx, dgamma, dbeta = batchnorm_backward(dout_new, cache)
+    dx = dx.reshape(N, H, W, C).transpose(0, 3, 1, 2)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
